@@ -1,7 +1,7 @@
 // Start by loading the map data and the state statistics.  When those are done, call the "ready" function.
 
 
-
+let map_state='CA';
 
 Promise.all([
 
@@ -32,16 +32,20 @@ function ready(data) {
 }
 
 function update(stats, value) {
-    console.log('update');
+        console.time('update1');
     let tweets = stats[1];
     var date = getDate(tweets)
-    console.log('update1');
+        console.timeEnd('update1');
+        console.time('update2');
     document.getElementById("range").innerHTML= '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp'+date[value];
-    console.log('update2');
+        console.timeEnd('update2');
+        console.time('update3');
     inputValue = date[value];
-    console.log('update3');
+        console.timeEnd('update3');
+        console.time('update4');
     render(stats, "#mapsvg", [-1,0,1], "polarity");
-    console.log('update4');
+    lineChart(stats,map_state);
+        console.timeEnd('update4');
 }
 
 
@@ -80,10 +84,11 @@ function getDate(stats){
 
 // Renders a map within the DOM element specified by svg_id.
 function render(data, svg_id, val_range, rate_type) {
-    console.log("render1");
+    console.time("concatenation1");
     let us = data[0];
     let stats = data[1];
-    console.log("render2");
+    console.timeEnd("concatenation1");
+    console.time("concatenation2");
     var dict = {};
     for (var i=0; i<stats.length; i++) {
         if (stats[i].date == inputValue){
@@ -103,8 +108,8 @@ function render(data, svg_id, val_range, rate_type) {
     let svg = d3.select(svg_id).attr("width", window.innerWidth*0.6)
         .attr("height", window.innerWidth*0.6);
 
-
-
+    console.timeEnd("concatenation2");
+    console.time("concatenation3");
     var colorLegend = d3.legendColor()
         .shapeWidth(30)
         .orient('horizontal')
@@ -125,9 +130,8 @@ function render(data, svg_id, val_range, rate_type) {
     svg.select(".legendLinear")
         .call(colorLegend);
 
-
-
-
+    console.timeEnd("concatenation3");
+    console.time("concatenation4");
     svg.append("g")
         .attr("class", "states")
         .selectAll("path")
@@ -136,6 +140,7 @@ function render(data, svg_id, val_range, rate_type) {
         .attr("fill", function(d) {
             //let rate=getrate(stats, d.properties.name,inputValue, rate_type);
             let rate=dict[d.properties.name.toLowerCase()];
+
             return colormap(rate);
         })
         .attr("d", path)
@@ -156,7 +161,7 @@ function render(data, svg_id, val_range, rate_type) {
             .on("zoom", function () {
             svg.attr("transform", d3.event.transform)
         }));*/
-
+    console.timeEnd("concatenation4");
 
 
 
@@ -164,6 +169,8 @@ function render(data, svg_id, val_range, rate_type) {
 }
 
 // line chart
+
+
 
 function getCases(data,clickedState){
     let covid = data[2]
@@ -191,7 +198,7 @@ function getCovidDate(data,clickedState){
 
 
 function lineChart(data,state){
-
+    map_state=state;
     var margin = {top: 100, right: 50, bottom: 50, left: 50}
     var width = window.innerWidth*0.55 - margin.left - margin.right
     var height = window.innerHeight*0.7 - margin.top - margin.bottom;
