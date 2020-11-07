@@ -5,10 +5,12 @@
     <title>US Map</title>
     <script src="http://d3js.org/d3.v5.min.js"></script>
     <script src="http://unpkg.com/topojson@3"></script>
-    <script src="http://ils.unc.edu/~gotz/courses/js/gotz-d3-tip.js"></script>
+    <script src="gotz-d3-tip.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js"></script>
     <script src = "https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.js"></script>
-    <link rel="stylesheet" type="text/css" href="http://ils.unc.edu/~gotz/courses/js/d3-tip.css"/>
+
+    <link rel="stylesheet" type="text/css" href="d3-tip.css"/>
+
     <script src="vis.js"></script>
     <style>
 
@@ -78,7 +80,7 @@
 
         #timeslide{
             -webkit-appearance: none;
-            width: 200%;
+            width: 50vw;
             height: 15px;
             border-radius: 5px;
             background: #d3d3d3;
@@ -103,6 +105,9 @@
             background: #ACD0C0;
             cursor: pointer;
         }
+        #range{
+            float: left;
+        }
 
 
 
@@ -117,7 +122,7 @@
 
 <div id="sliderContainer" style="text-align: right; width: 200px">
     <input id="timeslide" type="range" min="0" max="261" value="0" step="1"/><br>
-    <span id="range">2020-02-01</span>
+    <span id="range">&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp2020-02-01</span>
 </div>
 
 

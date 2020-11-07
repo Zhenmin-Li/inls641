@@ -18,12 +18,13 @@ let inputValue = '2020-02-01';
 
 // The callback which renders the page after the data has been loaded.
 function ready(data) {
-
+    console.log('ready');
     //update the map using time slider
     render(data, "#mapsvg", [-1,0,1], "polarity", '2020-02-01');
     d3.select("#timeslide").on("input", function() {
         update(data, +this.value);
     });
+    console.log('ready2');
 
 
     // Now render the life expectancy map.
@@ -31,19 +32,25 @@ function ready(data) {
 }
 
 function update(stats, value) {
+    console.log('update');
     let tweets = stats[1];
     var date = getDate(tweets)
-    document.getElementById("range").innerHTML= date[value];
+    console.log('update1');
+    document.getElementById("range").innerHTML= '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp'+date[value];
+    console.log('update2');
     inputValue = date[value];
+    console.log('update3');
     render(stats, "#mapsvg", [-1,0,1], "polarity");
+    console.log('update4');
 }
 
 
 
 // Helper function which, given the entire stats data structure, extracts the requested rate for the requested state
 function getrate(stats, state_name, date, rate_type) {
+    //console.log('getrate');
     for (var i=0; i<stats.length; i++) {
-        if (stats[i].location.toLowerCase() == state_name.toLowerCase() && stats[i].date == date){
+        if (stats[i].location.toLowerCase() == state_name.toLowerCase() & stats[i].date == date){
             return stats[i][rate_type];
         }
     }
@@ -58,19 +65,32 @@ function getText(stats, state_name){
 }
 
 function getDate(stats){
+    console.log('getdate');
     var date = []
     for (var i=0; i< stats.length; i++){
         date.push(stats[i]['date'])
     }
-    return date.sort().filter(function(el,i,a){return i==a.indexOf(el)});
+    console.log(date);
+    //return date.sort().filter(function(el,i,a){return i==a.indexOf(el)});
+    return(date);
+
 }
 
 
 
 // Renders a map within the DOM element specified by svg_id.
 function render(data, svg_id, val_range, rate_type) {
+    console.log("render1");
     let us = data[0];
     let stats = data[1];
+    console.log("render2");
+    var dict = {};
+    for (var i=0; i<stats.length; i++) {
+        if (stats[i].date == inputValue){
+            dict[stats[i].location.toLowerCase()]=stats[i][rate_type]
+        }
+    }
+    console.log(dict);
 
     let projection = d3.geoAlbersUsa()
         .translate([600 / 2, 425 / 2]) // translate to center of screen
@@ -113,11 +133,15 @@ function render(data, svg_id, val_range, rate_type) {
         .selectAll("path")
         .data(us.features)
         .enter().append("path")
-        .attr("fill", function(d) { let rate=getrate(stats, d.properties.name,inputValue, rate_type); return colormap(rate);})
+        .attr("fill", function(d) {
+            //let rate=getrate(stats, d.properties.name,inputValue, rate_type);
+            let rate=dict[d.properties.name.toLowerCase()];
+            return colormap(rate);
+        })
         .attr("d", path)
         .on('mouseover', function(d){
             let detail_text ="<b>Raw Text:</b> "+ getText(stats, d.properties.name);
-            let rate = getrate(stats, d.properties.name,inputValue, rate_type);
+            let rate = dict[d.properties.name.toLowerCase()];
             var decimal = d3.format(",.2f");
             document.getElementById('sentiment_text').innerHTML = 'The polarity of ' + d.properties.name + ' is '+ decimal(rate)+ '.';
         })
@@ -126,12 +150,12 @@ function render(data, svg_id, val_range, rate_type) {
 
             lineChart(data,d.properties.abbr);
         })
-        .call(d3.zoom()
+        /*.call(d3.zoom()
             .scaleExtent([1, 2])
             .translateExtent([[-500,-300], [1500, 1000]])
             .on("zoom", function () {
             svg.attr("transform", d3.event.transform)
-        }));
+        }));*/
 
 
 
@@ -169,7 +193,7 @@ function getCovidDate(data,clickedState){
 function lineChart(data,state){
 
     var margin = {top: 100, right: 50, bottom: 50, left: 50}
-    var width = window.innerWidth*0.6 - margin.left - margin.right
+    var width = window.innerWidth*0.55 - margin.left - margin.right
     var height = window.innerHeight*0.7 - margin.top - margin.bottom;
 
     var svg = d3.select("#linechart").append("svg").attr('id','cases')
@@ -245,7 +269,7 @@ function lineChart(data,state){
         .attr("class", "dot") // Assign a class for styling
         .attr("cx", function(d) { return xScale(new Date(d[0])) })
         .attr("cy", function(d) {  return yScale(+d[1]) }) //console.log(yScale(d[1]));
-        .attr("r", 2)
+        .attr("r", 3)
         .style("fill",'cadetblue')
         .on('mouseover', function (d, i) {
             d3.select(this).transition()
