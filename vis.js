@@ -1,8 +1,6 @@
 // Start by loading the map data and the state statistics.  When those are done, call the "ready" function.
 
 
-let map_state='CA';
-
 Promise.all([
 
     d3.json("us-states.json"),
@@ -11,71 +9,49 @@ Promise.all([
 ])
 .then(ready);
 
-
+//variable that decide the state to show in linechart, california by default
+let map_state='CA';
+//colormap for sentiments of usmap
 let colormap = d3.scaleLinear().domain([-1,0,1]).range(["#4F6457", "#eeeeee", "#D9B44A"]);
-
+//input variable of timeslide, 2020.2.1 by default
 let inputValue = '2020-02-01';
+
 
 // The callback which renders the page after the data has been loaded.
 function ready(data) {
-    console.log('ready');
-    //update the map using time slider
+    //initialize the usmap
     render(data, "#mapsvg", [-1,0,1], "polarity", '2020-02-01');
+    //update the map using time slider
     d3.select("#timeslide").on("input", function() {
         update(data, +this.value);
     });
-    console.log('ready2');
 
-
-    // Now render the life expectancy map.
-    //render(data, "#mapsvg_le", [82,78,74], "life_expectancy");
 }
 
 function update(stats, value) {
-        console.time('update1');
+
     let tweets = stats[1];
     var date = getDate(tweets)
-        console.timeEnd('update1');
-        console.time('update2');
+    //show the date under the timeslide
     document.getElementById("range").innerHTML= '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp'+date[value];
-        console.timeEnd('update2');
-        console.time('update3');
     inputValue = date[value];
-        console.timeEnd('update3');
-        console.time('update4');
+    //update usmap
     render(stats, "#mapsvg", [-1,0,1], "polarity");
+    //update linechart
     lineChart(stats,map_state);
-        console.timeEnd('update4');
 }
 
 
 
 // Helper function which, given the entire stats data structure, extracts the requested rate for the requested state
-function getrate(stats, state_name, date, rate_type) {
-    //console.log('getrate');
-    for (var i=0; i<stats.length; i++) {
-        if (stats[i].location.toLowerCase() == state_name.toLowerCase() & stats[i].date == date){
-            return stats[i][rate_type];
-        }
-    }
-}
 
-function getText(stats, state_name){
-    for (var i=0; i< stats.length; i++){
-    if (stats[i].location === state_name) {
-        return stats[i]['text']
-    }
-  }
-}
-
+//get dates as an array
 function getDate(stats){
-    console.log('getdate');
+
     var date = []
     for (var i=0; i< stats.length; i++){
         date.push(stats[i]['date'])
     }
-    console.log(date);
-    //return date.sort().filter(function(el,i,a){return i==a.indexOf(el)});
     return(date);
 
 }
@@ -84,18 +60,15 @@ function getDate(stats){
 
 // Renders a map within the DOM element specified by svg_id.
 function render(data, svg_id, val_range, rate_type) {
-    console.time("concatenation1");
     let us = data[0];
     let stats = data[1];
-    console.timeEnd("concatenation1");
-    console.time("concatenation2");
+    //generate a dictionary which contains sentiments of states on date of timeslide
     var dict = {};
     for (var i=0; i<stats.length; i++) {
         if (stats[i].date == inputValue){
             dict[stats[i].location.toLowerCase()]=stats[i][rate_type]
         }
     }
-    console.log(dict);
 
     let projection = d3.geoAlbersUsa()
         .translate([600 / 2, 425 / 2]) // translate to center of screen
@@ -104,16 +77,12 @@ function render(data, svg_id, val_range, rate_type) {
     // Define path generator
     let path = d3.geoPath().projection(projection);
 
-
     let svg = d3.select(svg_id).attr("width", window.innerWidth*0.6)
         .attr("height", window.innerWidth*0.6);
 
-    console.timeEnd("concatenation2");
-    console.time("concatenation3");
     var colorLegend = d3.legendColor()
         .shapeWidth(30)
         .orient('horizontal')
-        //.labelFormat(d3.format(".0f"))
         .scale(colormap)
         .cells([-1,-0.5,0,0.5,1])
         .labels(['negative','','','','positive'])
@@ -130,48 +99,34 @@ function render(data, svg_id, val_range, rate_type) {
     svg.select(".legendLinear")
         .call(colorLegend);
 
-    console.timeEnd("concatenation3");
-    console.time("concatenation4");
+    //usmap
     svg.append("g")
         .attr("class", "states")
         .selectAll("path")
         .data(us.features)
         .enter().append("path")
         .attr("fill", function(d) {
-            //let rate=getrate(stats, d.properties.name,inputValue, rate_type);
-            let rate=dict[d.properties.name.toLowerCase()];
-
+            let rate=dict[d.properties.name.toLowerCase()];//get polarity from dict
             return colormap(rate);
         })
         .attr("d", path)
         .on('mouseover', function(d){
             let detail_text ="<b>Raw Text:</b> "+ getText(stats, d.properties.name);
-            let rate = dict[d.properties.name.toLowerCase()];
+            let rate = dict[d.properties.name.toLowerCase()];//get polarity from dict
+            //show the polarity as text under usmap
             var decimal = d3.format(",.2f");
             document.getElementById('sentiment_text').innerHTML = 'The polarity of ' + d.properties.name + ' is '+ decimal(rate)+ '.';
         })
-        //.on("mouseout", function(d) { document.getElementById("sentiment_text").innerHTML = "&nbsp;"; })
-        .on('click', function(d){
-
+        .on('click.chart', function(d){
+            //show the linechart when click the state
             lineChart(data,d.properties.abbr);
         })
-        /*.call(d3.zoom()
-            .scaleExtent([1, 2])
-            .translateExtent([[-500,-300], [1500, 1000]])
-            .on("zoom", function () {
-            svg.attr("transform", d3.event.transform)
-        }));*/
-    console.timeEnd("concatenation4");
-
-
-
 
 }
 
 // line chart
 
-
-
+//get the number of cases of COVID
 function getCases(data,clickedState){
     let covid = data[2]
     var cases = []
@@ -179,10 +134,11 @@ function getCases(data,clickedState){
         if (covid[i]['state'].toLowerCase() == clickedState.toLowerCase()){
             cases.push(+covid[i]['new_case'])
         }
-
     }
     return cases;
 }
+
+//get date of cases
 function getCovidDate(data,clickedState){
     let covid = data[2]
     var date = []
@@ -190,7 +146,6 @@ function getCovidDate(data,clickedState){
         if (covid[i]['state'].toLowerCase() == clickedState.toLowerCase()){
             date.push(covid[i]['submission_date'])
         }
-
     }
     return date;
 }
@@ -198,7 +153,9 @@ function getCovidDate(data,clickedState){
 
 
 function lineChart(data,state){
+
     map_state=state;
+    //size of linechart
     var margin = {top: 100, right: 50, bottom: 50, left: 50}
     var width = window.innerWidth*0.55 - margin.left - margin.right
     var height = window.innerHeight*0.7 - margin.top - margin.bottom;
@@ -209,38 +166,32 @@ function lineChart(data,state){
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-
+    //scale of x y axis
     var xScale = d3.scaleTime()
         .domain(d3.extent(getCovidDate(data,state), function(d){return new Date(d)}))
         .range([0, width]);
-
-
     var yScale = d3.scaleLinear()
         .domain(d3.extent(getCases(data,state), function(d){return +d}))
         .range([height, 0]);
-
-
 
     var line = d3.line()
         .x(function(d) { return xScale(new Date(d[0])); }) // set the x values for the line generator
         .y(function(d) { return yScale(+d[1]); }) // set the y values for the line generator
         .curve(d3.curveMonotoneX) // apply smoothing to the line
 
+    //generate the plot
     var dataset = d3.zip(getCovidDate(data,state),getCases(data,state))
-
-
 
     svg.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + height + ")")
         .call(d3.axisBottom(xScale)); // Create an axis component with d3.axisBottom
-    //.tickFormat(d3.timeFormat("%m/%d/%Y")).tickValues(dataset.map(function(d){return new Date(d[0])})) this will show each unique date on x-axis.
 
     svg.append("g")
         .attr("class", "y axis")
         .call(d3.axisLeft(yScale)); // Create an axis component with d3.axisLeft
 
-
+    //tips when mouseover
     var tips = d3.tip()
         .attr('class','d3-tip')
         .offset([-8, 0])
@@ -252,8 +203,6 @@ function lineChart(data,state){
         })
 
     svg.call(tips)
-
-
 
     svg.append("path")
         .datum(dataset) // 10. Binds data to the line
@@ -292,8 +241,6 @@ function lineChart(data,state){
         .on('mouseover', tips.show)
         .on('mouseout', tips.hide);
 
-    //console.log(height)
-
     svg.append("line")
         .attr("x1", xScale(new Date(inputValue)))
         .attr("y1", 0)
@@ -304,8 +251,6 @@ function lineChart(data,state){
         .style("fill", "none");
 
         d3.select('#cases').remove()
-
-
 }
 
 

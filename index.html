@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>US Map</title>
+    //script
     <script src="d3.v5.min.js"></script>
     <script src="topojson.js"></script>
     <script src="gotz-d3-tip.js"></script>
@@ -10,7 +11,7 @@
     <script src = "d3-legend.js"></script>
 
     <link rel="stylesheet" type="text/css" href="d3-tip.css"/>
-
+    //script for usmap and linechart
     <script src="vis.js"></script>
     <style>
 
@@ -117,7 +118,7 @@
 </head>
 <body>
 <header class = "header">
-    <h1>Sentiment Map& Covid new cases per day</h1>
+    <h1>Sentiment Map & Covid New Cases Per Day</h1>
 </header>
 
 <div id="sliderContainer" style="text-align: right; width: 200px">
@@ -125,14 +126,11 @@
     <span id="range">&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp2020-02-01</span>
 </div>
 
-
 <div style="float: left; width: 505px;">
  <br/>
     <svg id="mapsvg" style="width: 600px; height: 425px;padding: 40px;margin-top: 50px;"></svg> <!--border: 1px solid black-->
     <div id = 'sentiment_text' class = 'text' style=" width: 500px;"></div>
 </div>
-
-
 
 <div id = 'linechart'>
     <svg id = 'cases' ></svg>
