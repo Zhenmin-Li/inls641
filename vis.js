@@ -56,7 +56,13 @@ function getDate(stats){
 
 }
 
-
+function getText(stats, state_name){
+    for (var i=0; i< stats.length; i++){
+        if (stats[i].location === state_name) {
+            return stats[i]['text']
+        }
+    }
+}
 
 // Renders a map within the DOM element specified by svg_id.
 function render(data, svg_id, val_range, rate_type) {
